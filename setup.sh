@@ -85,19 +85,9 @@ else
     print_warning ".env file already exists, skipping..."
 fi
 
-# Step 6: Generate Laravel application key if not set
+# Step 6: Build and start containers
 echo ""
-echo "Step 6: Checking application key..."
-if ! grep -q "APP_KEY=base64:" .env; then
-    print_warning "APP_KEY not set. You'll need to generate it after containers are running."
-    print_warning "Run: docker compose exec app php artisan key:generate"
-else
-    print_status "APP_KEY is already set"
-fi
-
-# Step 7: Build and start containers
-echo ""
-echo "Step 7: Building and starting containers..."
+echo "Step 6: Building and starting containers..."
 podman-compose down 2>/dev/null || true
 podman-compose up -d --build
 print_status "Containers started"
@@ -121,11 +111,23 @@ podman-compose exec app chown -R www-data:www-data /var/www/html/storage /var/ww
 podman-compose exec app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 print_status "Permissions set"
 
-# Step 11: Run database migrations (optional, commented out by default)
+# Step 10: Database migrations and Application initialization
 echo ""
-echo "Step 11: Database migrations (skipped by default)..."
-print_warning "To run migrations manually, execute:"
-print_warning "  podman-compose exec app php artisan migrate"
+echo "Step 10: Initializing database and application..."
+podman-compose exec app php artisan migrate --force --seed 2>/dev/null || true
+podman-compose exec app php artisan storage:link 2>/dev/null || true
+print_status "Database migrated, seeded, and storage linked"
+
+# Step 11: Application Key check
+echo ""
+echo "Step 11: Generating Application key..."
+if ! grep -q "APP_KEY=base64:" .env; then
+    podman-compose exec app php artisan key:generate
+    print_status "APP_KEY generated. Restarting containers to apply..."
+    podman-compose restart app
+else
+    print_status "APP_KEY is already set"
+fi
 
 # Step 12: Configure firewall
 echo ""

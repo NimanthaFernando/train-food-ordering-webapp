@@ -19,11 +19,11 @@ services:
             DB_CONNECTION: mysql
             DB_HOST: db
             DB_PORT: 3306
-            DB_DATABASE: ${DB_DATABASE:-customer1}
+            DB_DATABASE: ${DB_DATABASE:-laravel}
             DB_USERNAME: ${DB_USERNAME:-root}
             DB_PASSWORD: ${DB_PASSWORD:-root}
         volumes:
-            - .:/var/www/html
+            - .:/var/www/html:z
         networks:
             - laravel
 
@@ -32,7 +32,7 @@ services:
         container_name: laravel-mysql
         restart: unless-stopped
         environment:
-            MYSQL_DATABASE: ${DB_DATABASE:-customer1}
+            MYSQL_DATABASE: ${DB_DATABASE:-laravel}
             MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
             MYSQL_PASSWORD: ${DB_PASSWORD:-root}
         ports:

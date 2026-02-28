@@ -33,10 +33,12 @@ This guide explains how to deploy the application on any machine using Docker or
     ```
 
 5.  **Initialize Application**
-    Generate the encryption key and run database migrations:
+    Generate the encryption key, run database migrations with seeds, and link storage for images:
     ```bash
     docker-compose exec app php artisan key:generate
-    docker-compose exec app php artisan migrate --seed
+    docker-compose exec app php artisan migrate --force --seed
+    docker-compose exec app php artisan storage:link
+    docker-compose restart app
     ```
 
 6.  **Access the App**
